@@ -1734,8 +1734,10 @@ namespace lime {
 				
 			} else if (mReturn.isObject ()) {
 				
-				result = JObjectToHaxe (env, mReturn, env->CallStaticObjectMethodA (mClass, mMethod, jargs));
-				
+				jobject tmp = env->CallStaticObjectMethodA (mClass, mMethod, jargs);
+				result = JObjectToHaxe (env, mReturn, tmp);
+				env->DeleteLocalRef(tmp);
+
 			} else {
 				
 				switch (mReturn.element) {
@@ -1790,6 +1792,13 @@ namespace lime {
 				
 			}
 			
+			for (int i = 0; i < mArgCount; i++) {
+		
+				env->DeleteLocalRef(jargs[i].l);
+				
+			}
+			
+
 			CleanStringArgs ();
 			CheckException (env);
 			return result;
