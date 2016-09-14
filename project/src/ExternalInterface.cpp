@@ -24,6 +24,7 @@
 #include <system/CFFIPointer.h>
 #include <system/Clipboard.h>
 #include <system/JNI.h>
+#include <system/Locale.h>
 #include <system/SensorEvent.h>
 #include <system/System.h>
 #include <text/Font.h>
@@ -275,6 +276,7 @@ namespace lime {
 	
 	value lime_deflate_compress (value buffer) {
 		
+		#ifdef LIME_ZLIB
 		Bytes data;
 		data.Set (buffer);
 		Bytes result;
@@ -282,12 +284,16 @@ namespace lime {
 		Zlib::Compress (DEFLATE, &data, &result);
 		
 		return result.Value ();
+		#else
+		return alloc_null();
+		#endif
 		
 	}
 	
 	
 	value lime_deflate_decompress (value buffer) {
 		
+		#ifdef LIME_ZLIB
 		Bytes data;
 		data.Set (buffer);
 		Bytes result;
@@ -295,6 +301,9 @@ namespace lime {
 		Zlib::Decompress (DEFLATE, &data, &result);
 		
 		return result.Value ();
+		#else
+		return alloc_null ();
+		#endif
 		
 	}
 	
@@ -659,6 +668,7 @@ namespace lime {
 	
 	value lime_gzip_compress (value buffer) {
 		
+		#ifdef LIME_ZLIB
 		Bytes data;
 		data.Set (buffer);
 		Bytes result;
@@ -666,12 +676,16 @@ namespace lime {
 		Zlib::Compress (GZIP, &data, &result);
 		
 		return result.Value ();
+		#else
+		return alloc_null ();
+		#endif
 		
 	}
 	
 	
 	value lime_gzip_decompress (value buffer) {
 		
+		#ifdef LIME_ZLIB
 		Bytes data;
 		data.Set (buffer);
 		Bytes result;
@@ -679,6 +693,9 @@ namespace lime {
 		Zlib::Decompress (GZIP, &data, &result);
 		
 		return result.Value ();
+		#else
+		return alloc_null ();
+		#endif
 		
 	}
 	
@@ -1014,6 +1031,25 @@ namespace lime {
 	}
 	
 	
+	value lime_locale_get_system_locale () {
+		
+		std::string* locale = Locale::GetSystemLocale ();
+		
+		if (!locale) {
+			
+			return alloc_null ();
+			
+		} else {
+			
+			value result = alloc_string (locale->c_str ());
+			delete locale;
+			return result;
+			
+		}
+		
+	}
+	
+	
 	value lime_lzma_compress (value buffer) {
 		
 		#ifdef LIME_LZMA
@@ -1253,25 +1289,13 @@ namespace lime {
 	
 	value lime_system_get_directory (int type, HxString company, HxString title) {
 		
-		const char* path = System::GetDirectory ((SystemDirectory)type, company.__s, title.__s);
+		std::wstring* path = System::GetDirectory ((SystemDirectory)type, company.__s, title.__s);
 		
 		if (path) {
 			
-			value _path = alloc_string (path);
-			
-			if (type != 4) {
-				
-				// TODO: Make this more consistent
-				
-				//This free() causes crashes on mac at least. Commenting it out makes it work
-				//again but may cause a small memory leak. Some more consideration is
-				//necessary to figure out what to do here
-				
-				//free ((char*) path);
-				
-			}
-			
-			return _path;
+			value result = alloc_wstring (path->c_str ());
+			delete path;
+			return result;
 			
 		} else {
 			
@@ -1581,6 +1605,7 @@ namespace lime {
 	
 	value lime_zlib_compress (value buffer) {
 		
+		#ifdef LIME_ZLIB
 		Bytes data;
 		data.Set (buffer);
 		Bytes result;
@@ -1588,12 +1613,16 @@ namespace lime {
 		Zlib::Compress (ZLIB, &data, &result);
 		
 		return result.Value ();
+		#else
+		return alloc_null ();
+		#endif
 		
 	}
 	
 	
 	value lime_zlib_decompress (value buffer) {
 		
+		#ifdef LIME_ZLIB
 		Bytes data;
 		data.Set (buffer);
 		Bytes result;
@@ -1601,6 +1630,9 @@ namespace lime {
 		Zlib::Decompress (ZLIB, &data, &result);
 		
 		return result.Value ();
+		#else
+		return alloc_null ();
+		#endif
 		
 	}
 	
@@ -1675,6 +1707,7 @@ namespace lime {
 	DEFINE_PRIME2 (lime_jpeg_decode_bytes);
 	DEFINE_PRIME2 (lime_jpeg_decode_file);
 	DEFINE_PRIME2v (lime_key_event_manager_register);
+	DEFINE_PRIME0 (lime_locale_get_system_locale);
 	DEFINE_PRIME1 (lime_lzma_compress);
 	DEFINE_PRIME1 (lime_lzma_decompress);
 	DEFINE_PRIME2v (lime_mouse_event_manager_register);

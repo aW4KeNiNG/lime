@@ -28,11 +28,14 @@ typedef WindowConfig = {
 	@:optional var depthBuffer:Bool;
 	@:optional var display:Int;
 	#if (js && html5)
-	@:optional var element:#if (haxe_ver >= "3.2") js.html.Element #else js.html.HtmlElement #end;
+	@:optional var element:#if (haxe_ver >= 3.2) js.html.Element #else js.html.HtmlElement #end;
 	#end
 	@:optional var fullscreen:Bool;
 	@:optional var hardware:Bool;
 	@:optional var height:Int;
+	@:optional var hidden:Bool;
+	@:optional var maximized:Bool;
+	@:optional var minimized:Bool;
 	@:optional var parameters:String;
 	@:optional var resizable:Bool;
 	@:optional var stencilBuffer:Bool;

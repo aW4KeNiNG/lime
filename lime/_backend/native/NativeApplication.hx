@@ -131,7 +131,7 @@ class NativeApplication {
 		untyped setImmediate (eventLoop);
 		return 0;
 		
-		#elseif (cpp || neko)
+		#elseif lime_cffi
 		
 		var result = lime_application_exec (handle);
 		parent.onExit.dispatch (result);
@@ -519,6 +519,8 @@ class NativeApplication {
 				case WINDOW_ACTIVATE:
 					
 					window.onActivate.dispatch ();
+					
+					AudioManager.resume ();
 				
 				case WINDOW_CLOSE:
 					
@@ -527,6 +529,8 @@ class NativeApplication {
 				case WINDOW_DEACTIVATE:
 					
 					window.onDeactivate.dispatch ();
+					
+					AudioManager.suspend ();
 				
 				case WINDOW_ENTER:
 					

@@ -96,6 +96,11 @@ class ProjectXMLParser extends HXProject {
 			defines.set ("native", "1");
 			defines.set ("nodejs", "1");
 			
+		} else if (targetFlags.exists ("cs")) {
+			
+			defines.set ("native", "1");
+			defines.set ("cs", "1");
+			
 		} else if (target == Platform.FIREFOX) {
 			
 			defines.set ("html5", "1");
@@ -143,10 +148,6 @@ class ProjectXMLParser extends HXProject {
 		if (defines.exists ("SWF_PLAYER")) {
 			
 			environment.set ("SWF_PLAYER", defines.get ("SWF_PLAYER"));
-			
-		} else if (defines.exists ("FLASH_PLAYER_EXE")) {
-			
-			environment.set ("FLASH_PLAYER_EXE", defines.get ("SWF_PLAYER"));
 			
 		}
 		

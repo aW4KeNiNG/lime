@@ -1098,7 +1098,6 @@ class Image {
 		
 		#if (js && html5)
 		var image = new JSImage ();
-		image.crossOrigin = "Anonymous";
 		
 		var image_onLoaded = function (event) {
 			
@@ -1155,7 +1154,7 @@ class Image {
 			
 			throw "Image.fromBytes not implemented for console target";
 			
-		#elseif ((cpp || neko || nodejs) && !macro)
+		#elseif (lime_cffi && !macro)
 			
 			var data:Dynamic = lime_image_load (bytes);
 			
@@ -1219,7 +1218,7 @@ class Image {
 			// (issue #1019768)
 			if (image.complete) { }
 			
-		#elseif (cpp || neko || nodejs || java)
+		#elseif (lime_cffi || java)
 			
 			var buffer = null;
 			
@@ -1626,7 +1625,7 @@ class Image {
 	
 	
 	
-	#if ((cpp || neko || nodejs) && !macro)
+	#if (lime_cffi && !macro)
 	@:cffi private static function lime_image_load (data:Dynamic):Dynamic;
 	#end
 	
