@@ -106,9 +106,8 @@ class IOSPlatform extends PlatformTarget {
 		project.sources = PathHelper.relocatePaths (project.sources, PathHelper.combine (targetDirectory, project.app.file + "/haxe"));
 		//project.dependencies.push ("stdc++");
 		
-		if (project.certificate == null || project.certificate.identity == null) {
+		if (project.certificate != null && project.certificate.identity == null) {
 			
-			project.certificate = new Keystore ();
 			project.certificate.identity = "iPhone Developer";
 			
 		}
@@ -130,6 +129,12 @@ class IOSPlatform extends PlatformTarget {
 		context.HAS_ICON = false;
 		context.HAS_LAUNCH_IMAGE = false;
 		context.OBJC_ARC = false;
+		
+		if (project.certificate != null) {
+			
+			context.DEVELOPMENT_TEAM_ID = project.certificate.teamID;
+			
+		}
 		
 		context.linkedLibraries = [];
 		
@@ -177,7 +182,7 @@ class IOSPlatform extends PlatformTarget {
 		
 		if (project.config.getString ("ios.device", "universal") == "universal" || project.config.getString ("ios.device") == "iphone") {
 			
-			if (project.config.getFloat ("ios.deployment", 5.1) < 5) {
+			if (project.config.getFloat ("ios.deployment", 8) < 5) {
 				
 				ArrayHelper.addUnique (architectures, Architecture.ARMV6);
 				
@@ -220,7 +225,7 @@ class IOSPlatform extends PlatformTarget {
 		context.ARMV7S = armv7s;
 		context.ARM64 = arm64;
 		context.TARGET_DEVICES = switch (project.config.getString ("ios.device", "universal")) { case "iphone": "1"; case "ipad": "2"; default: "1,2";  }
-		context.DEPLOYMENT = project.config.getString ("ios.deployment", "5.1.1");
+		context.DEPLOYMENT = project.config.getString ("ios.deployment", "8.0");
 		
 		if (project.config.getString ("ios.compiler") == "llvm" || project.config.getString ("ios.compiler", "clang") == "clang") {
 			
@@ -228,7 +233,7 @@ class IOSPlatform extends PlatformTarget {
 			
 		}
 
-		//context.ENABLE_BITCODE = (project.config.getFloat ("ios.deployment", 5.1) >= 6);
+		//context.ENABLE_BITCODE = (project.config.getFloat ("ios.deployment", 8) >= 6);
 		context.ENABLE_BITCODE = project.config.getBool ("ios.enable-bitcode", false);
 		context.IOS_COMPILER = project.config.getString ("ios.compiler", "clang");
 		context.CPP_BUILD_LIBRARY = project.config.getString ("cpp.buildLibrary", "hxcpp");

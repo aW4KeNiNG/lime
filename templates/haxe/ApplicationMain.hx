@@ -77,6 +77,7 @@ class ApplicationMain {
 			windows: [
 				::foreach windows::
 				{
+					allowHighDPI: ::allowHighDPI::,
 					antialiasing: ::antialiasing::,
 					background: ::background::,
 					borderless: ::borderless::,
@@ -114,7 +115,7 @@ class ApplicationMain {
 		
 		var result = app.exec ();
 		
-		#if (sys && !nodejs && !emscripten)
+		#if (sys && !ios && !nodejs && !emscripten)
 		lime.system.System.exit (result);
 		#end
 		
