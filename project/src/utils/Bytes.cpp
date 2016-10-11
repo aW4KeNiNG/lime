@@ -1,3 +1,4 @@
+#include <hx/CFFIExt.h>
 #include <system/System.h>
 #include <utils/Bytes.h>
 
@@ -39,8 +40,9 @@ namespace lime {
 		
 		_data = 0;
 		_length = 0;
-		_value = 0;
+		_pin = 0;
 		_root = 0;
+		_value = 0;
 		
 	}
 	
@@ -51,8 +53,9 @@ namespace lime {
 		
 		_data = 0;
 		_length = 0;
-		_value = 0;
+		_pin = 0;
 		_root = 0;
+		_value = 0;
 		
 		Resize (size);
 		
@@ -65,8 +68,9 @@ namespace lime {
 		
 		_data = 0;
 		_length = 0;
-		_value = 0;
+		_pin = 0;
 		_root = 0;
+		_value = 0;
 		
 		Set (bytes);
 		
@@ -79,29 +83,11 @@ namespace lime {
 		
 		_data = 0;
 		_length = 0;
-		_value = 0;
+		_pin = 0;
 		_root = 0;
+		_value = 0;
 		
-		FILE_HANDLE *file = lime::fopen (path, "rb");
-		
-		if (!file) {
-			
-			return;
-			
-		}
-		
-		lime::fseek (file, 0, SEEK_END);
-		int size = lime::ftell (file);
-		lime::fseek (file, 0, SEEK_SET);
-		
-		if (size > 0) {
-			
-			Resize (size);
-			int status = lime::fread (_data, _length, 1, file);
-			
-		}
-		
-		lime::fclose (file);
+		ReadFile (path);
 		
 	}
 	
@@ -112,8 +98,9 @@ namespace lime {
 		
 		_data = 0;
 		_length = 0;
-		_value = 0;
+		_pin = 0;
 		_root = 0;
+		_value = 0;
 		
 		Set (data);
 		
@@ -122,10 +109,15 @@ namespace lime {
 	
 	Bytes::~Bytes () {
 		
+		if (_pin) {
+			
+			EXT_unpin_buffer (_pin);
+			
+		}
+		
 		if (_root) {
 			
-			*_root = 0;
-			free_root (_root);
+			delete _root;
 			
 		}
 		
@@ -153,6 +145,32 @@ namespace lime {
 	}
 	
 	
+	void Bytes::ReadFile (const char* path) {
+		
+		FILE_HANDLE *file = lime::fopen (path, "rb");
+		
+		if (!file) {
+			
+			return;
+			
+		}
+		
+		lime::fseek (file, 0, SEEK_END);
+		int size = lime::ftell (file);
+		lime::fseek (file, 0, SEEK_SET);
+		
+		if (size > 0) {
+			
+			Resize (size);
+			int status = lime::fread (_data, _length, 1, file);
+			
+		}
+		
+		lime::fclose (file);
+		
+	}
+	
+	
 	void Bytes::Resize (int size) {
 		
 		if (size != _length) {
@@ -160,8 +178,7 @@ namespace lime {
 			if (!_value) {
 				
 				_value = alloc_empty_object ();
-				_root = alloc_root ();
-				*_root = _value;
+				_root = new AutoGCRoot (_value);
 				
 			}
 			
@@ -222,8 +239,7 @@ namespace lime {
 			
 			if (_root) {
 				
-				*_root = 0;
-				free_root (_root);
+				delete _root;
 				
 			}
 			
@@ -233,13 +249,23 @@ namespace lime {
 			
 			_value = bytes;
 			
-			if (!_root) {
+			if (!_pin && HAS_pin_buffer ()) {
 				
-				_root = alloc_root ();
+				buffer b = val_to_buffer (val_field (_value, id_b));
+				_pin = EXT_pin_buffer (b);
 				
 			}
 			
-			*_root = _value;
+			if (!_root) {
+				
+				_root = new AutoGCRoot (_value);
+				
+			} else {
+				
+				_root->set (_value);
+				
+			}
+			
 			_length = val_int (val_field (bytes, id_length));
 			
 			if (_length > 0) {
@@ -283,8 +309,7 @@ namespace lime {
 			
 			if (_root) {
 				
-				*_root = 0;
-				free_root (_root);
+				delete _root;
 				
 			}
 			
@@ -298,6 +323,13 @@ namespace lime {
 	value Bytes::Value () {
 		
 		if (_value) {
+			
+			if (!_pin && HAS_pin_buffer ()) {
+				
+				buffer b = val_to_buffer (val_field (_value, id_b));
+				_pin = EXT_pin_buffer (b);
+				
+			}
 			
 			return _value;
 			

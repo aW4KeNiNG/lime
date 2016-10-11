@@ -1,10 +1,12 @@
 #include <hx/CFFIPrimePatch.h>
 //#include <hx/CFFIPrime.h>
 #include <system/CFFIPointer.h>
+#include <system/Mutex.h>
 #include <utils/Bytes.h>
 #include "OpenGL.h"
 #include "OpenGLBindings.h"
 #include <string>
+#include <vector>
 
 #ifdef NEED_EXTENSIONS
 #define DEFINE_EXTENSION
@@ -34,45 +36,152 @@ namespace lime {
 	void lime_gl_delete_shader (value handle);
 	void lime_gl_delete_texture (value handle);
 	
+	enum GCObjectType {
+		
+		GC_BUFFER,
+		GC_FRAMEBUFFER,
+		GC_PROGRAM,
+		GC_RENDERBUFFER,
+		GC_SHADER,
+		GC_TEXTURE
+		
+	};
+	
+	std::vector<GCObjectType> gc_gl_type;
+	std::vector<GLuint> gc_gl_id;
+	Mutex gc_gl_mutex;
+	
 	
 	void gc_gl_buffer (value handle) {
 		
-		lime_gl_delete_buffer (handle);
+		gc_gl_mutex.Lock ();
+		
+		gc_gl_type.push_back (GC_BUFFER);
+		gc_gl_id.push_back (reinterpret_cast<uintptr_t> (val_data (handle)));
+		
+		gc_gl_mutex.Unlock ();
 		
 	}
 	
 	
 	void gc_gl_framebuffer (value handle) {
 		
-		lime_gl_delete_framebuffer (handle);
+		gc_gl_mutex.Lock ();
+		
+		gc_gl_type.push_back (GC_FRAMEBUFFER);
+		gc_gl_id.push_back (reinterpret_cast<uintptr_t> (val_data (handle)));
+		
+		gc_gl_mutex.Unlock ();
 		
 	}
 	
 	
 	void gc_gl_program (value handle) {
 		
-		lime_gl_delete_program (handle);
+		gc_gl_mutex.Lock ();
+		
+		gc_gl_type.push_back (GC_PROGRAM);
+		gc_gl_id.push_back (reinterpret_cast<uintptr_t> (val_data (handle)));
+		
+		gc_gl_mutex.Unlock ();
 		
 	}
 	
 	
 	void gc_gl_render_buffer (value handle) {
 		
-		lime_gl_delete_render_buffer (handle);
+		gc_gl_mutex.Lock ();
+		
+		gc_gl_type.push_back (GC_RENDERBUFFER);
+		gc_gl_id.push_back (reinterpret_cast<uintptr_t> (val_data (handle)));
+		
+		gc_gl_mutex.Unlock ();
+		
+	}
+	
+	
+	void gc_gl_run () {
+		
+		gc_gl_mutex.Lock ();
+		
+		int size = gc_gl_type.size ();
+		
+		if (size > 0) {
+			
+			GCObjectType type;
+			GLuint id;
+			
+			for (int i = 0; i < size; i++) {
+				
+				GCObjectType type = gc_gl_type[i];
+				GLuint id = gc_gl_id[i];
+				
+				switch (type) {
+					
+					case GC_BUFFER:
+						
+						glDeleteBuffers (1, &id);
+						break;
+					
+					case GC_FRAMEBUFFER:
+						
+						glDeleteFramebuffers (1, &id);
+						break;
+					
+					case GC_PROGRAM:
+						
+						glDeleteProgram (id);
+						break;
+					
+					case GC_RENDERBUFFER:
+						
+						glDeleteRenderbuffers (1, &id);
+						break;
+					
+					case GC_SHADER:
+						
+						glDeleteShader (id);
+						break;
+					
+					case GC_TEXTURE:
+						
+						glDeleteTextures (1, &id);
+						break;
+					
+				}
+				
+			}
+			
+			gc_gl_type.clear ();
+			gc_gl_id.clear ();
+			
+		}
+		
+		gc_gl_mutex.Unlock ();
 		
 	}
 	
 	
 	void gc_gl_shader (value handle) {
 		
-		lime_gl_delete_shader (handle);
+		gc_gl_mutex.Lock ();
+		
+		gc_gl_type.push_back (GC_SHADER);
+		gc_gl_id.push_back (reinterpret_cast<uintptr_t> (val_data (handle)));
+		
+		gc_gl_mutex.Unlock ();
 		
 	}
 	
 	
 	void gc_gl_texture (value handle) {
 		
-		lime_gl_delete_texture (handle);
+		gc_gl_mutex.Lock ();
+		
+		gc_gl_type.push_back (GC_TEXTURE);
+		gc_gl_id.push_back (reinterpret_cast<uintptr_t> (val_data (handle)));
+		
+		gc_gl_mutex.Unlock ();
 		
 	}
 	
@@ -210,6 +319,7 @@ namespace lime {
 	
 	void lime_gl_clear (int mask) {
 		
+		gc_gl_run ();
 		glClear (mask);
 		
 	}
@@ -312,7 +422,7 @@ namespace lime {
 		
 		GLuint buffer;
 		glGenBuffers (1, &buffer);
-		return CFFIPointer ((void*)buffer, gc_gl_buffer);
+		return CFFIPointer ((void*)(uintptr_t)buffer, gc_gl_buffer);
 		
 	}
 	
@@ -321,14 +431,14 @@ namespace lime {
 		
 		GLuint id = 0;
 		glGenFramebuffers (1, &id);
-		return CFFIPointer ((void*)id, gc_gl_framebuffer);
+		return CFFIPointer ((void*)(uintptr_t)id, gc_gl_framebuffer);
 		
 	}
 	
 	
 	value lime_gl_create_program () {
 		
-		return CFFIPointer ((void*)glCreateProgram (), gc_gl_program);
+		return CFFIPointer ((void*)(uintptr_t)glCreateProgram (), gc_gl_program);
 		
 	}
 	
@@ -337,23 +447,23 @@ namespace lime {
 		
 		GLuint id = 0;
 		glGenRenderbuffers (1, &id);
-		return CFFIPointer ((void*)id, gc_gl_render_buffer);
+		return CFFIPointer ((void*)(uintptr_t)id, gc_gl_render_buffer);
 		
 	}
 	
 	
 	value lime_gl_create_shader (int type) {
 		
-		return CFFIPointer ((void*)glCreateShader (type), gc_gl_shader);
+		return CFFIPointer ((void*)(uintptr_t)glCreateShader (type), gc_gl_shader);
 		
 	}
 	
 	
 	value lime_gl_create_texture () {
 		
-		unsigned int id = 0;
+		GLuint id = 0;
 		glGenTextures (1, &id);
-		return CFFIPointer ((void*)id, gc_gl_texture);
+		return CFFIPointer ((void*)(uintptr_t)id, gc_gl_texture);
 		
 	}
 	

@@ -139,7 +139,6 @@
 		<section if="LIME_OPENAL">
 			
 			<compilerflag value="-I${NATIVE_TOOLKIT_PATH}/openal/include/" unless="emscripten" />
-			<!-- <compilerflag value="-I${NATIVE_TOOLKIT_PATH}/openal-android/include/" if="android" /> -->
 			<compilerflag value="-DLIME_OPENAL" />
 			<compilerflag value="-DLIME_OPENALSOFT" if="LIME_OPENALSOFT" />
 			<compilerflag value="-DAL_LIBTYPE_STATIC=1" />
@@ -202,6 +201,7 @@
 			<file name="src/backend/sdl/SDLGamepad.cpp" />
 			<file name="src/backend/sdl/SDLJoystick.cpp" />
 			<file name="src/backend/sdl/SDLMouse.cpp" />
+			<file name="src/backend/sdl/SDLMutex.cpp" />
 			<file name="src/backend/sdl/SDLSystem.cpp" />
 			
 		</section>
@@ -241,6 +241,7 @@
 		<file name="src/ui/TextEvent.cpp" />
 		<file name="src/ui/TouchEvent.cpp" />
 		<file name="src/ui/WindowEvent.cpp" />
+		<file name="src/utils/ArrayBufferView.cpp" />
 		<file name="src/utils/Bytes.cpp" />
 		
 		<file name="src/hx/CFFIExt.cpp" />
@@ -257,7 +258,6 @@
 	<include name="lib/nfd/files.xml" />
 	<include name="lib/ogg/files.xml" />
 	<include name="lib/openal/files.xml" />
-	<!-- <include name="lib/openal-android/files.xml" if="android" /> -->
 	<include name="lib/pixman/files.xml" />
 	<include name="lib/png/files.xml" />
 	<include name="lib/sdl/files.xml" />
@@ -284,7 +284,6 @@
 		<files id="native-toolkit-nfd" if="LIME_NFD" />
 		<files id="native-toolkit-ogg" if="LIME_OGG" />
 		<files id="native-toolkit-openal" if="LIME_OPENALSOFT" />
-		<!-- <files id="native-toolkit-openal-android" if="LIME_OPENAL android" /> -->
 		<files id="native-toolkit-pixman" if="LIME_PIXMAN" />
 		<files id="native-toolkit-png" if="LIME_PNG" />
 		<files id="native-toolkit-sdl" if="LIME_SDL" unless="emscripten" />

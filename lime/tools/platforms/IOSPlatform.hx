@@ -232,7 +232,7 @@ class IOSPlatform extends PlatformTarget {
 			context.OBJC_ARC = true;
 			
 		}
-
+		
 		//context.ENABLE_BITCODE = (project.config.getFloat ("ios.deployment", 8) >= 6);
 		context.ENABLE_BITCODE = project.config.getBool ("ios.enable-bitcode", false);
 		context.IOS_COMPILER = project.config.getString ("ios.compiler", "clang");
@@ -346,18 +346,17 @@ class IOSPlatform extends PlatformTarget {
 
 		}
 		
-		/*var assets = new Array <Asset> ();
+		var haxelibPath = project.environment.get ("HAXELIB_PATH");
 		
-		for (asset in project.assets) {
+		if (haxelibPath != null) {
 			
-			var newAsset = asset.clone ();
+			context.HAXELIB_PATH = 'export HAXELIB_PATH=$haxelibPath;';
 			
-			assets.push ();
+		} else {
 			
-		}*/
-		
-		//updateIcon ();
-		//updateLaunchImage ();
+			context.HAXELIB_PATH = '';
+			
+		}
 		
 		return context;
 		
